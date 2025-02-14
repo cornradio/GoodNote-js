@@ -1,8 +1,83 @@
+# GoodNote 系列 - 网页笔记助手 🚀
 
-GoodNote - 网页笔记助手
-https://greasyfork.org/zh-CN/scripts/526070
+## 📦 安装方式
 
-GoodNote - VSCode 网页笔记助手
-https://greasyfork.org/zh-CN/scripts/526873 
+### 方式一：从 GreasyFork 安装（推荐）
 
-也可以进入文件夹，点击代码-raw格式，即可安装。
+- [GoodNote VSCode版](https://greasyfork.org/zh-CN/scripts/526873) - 支持代码高亮的增强版本
+- [GoodNote 纯文本版](https://greasyfork.org/zh-CN/scripts/526070) - 轻量级纯文本版本
+
+### 方式二：手动安装
+1. 进入对应版本文件夹
+2. 点击代码文件（.js文件）
+3. 选择 "Raw" 格式查看
+4. Tampermonkey 会自动识别脚本，点击安装即可        
+
+## 🌟 VSCode版特性
+
+### ✨ 主要功能
+
+- 🎯 随时随地记笔记，支持任何网页
+- 💻 VSCode风格的编辑器界面
+- 🎨 13种编程语言的语法高亮
+- 💾 自动保存笔记内容
+- 🌈 优雅的界面动画和模糊背景
+- ⌨️ 便捷的快捷键支持
+
+### 🚀 使用方法
+
+1. 打开编辑器：
+   - 快捷键：`Ctrl + Shift + L`（Windows/Linux）或 `Cmd + Shift + L`（Mac）
+   - 或点击右下角的代码图标
+
+2. 编辑器功能：
+   - 右上角切换编程语言
+   - 实时语法高亮
+   - 自动保存内容
+
+3. 关闭编辑器：
+   - 使用相同快捷键
+   - 点击编辑器外部
+   - 点击右下角图标
+
+### 🔧 支持的编程语言
+
+- JavaScript / TypeScript
+- HTML / CSS
+- Python / Java
+- C++ / C#
+- PHP / SQL
+- Markdown / JSON
+- 纯文本
+
+## 💡 纯文本版特性
+
+- 🚀 极简设计，轻量运行
+- 📝 专注纯文本记录
+- 💾 自动保存功能
+- 🎯 支持所有网页
+
+## 🎯 使用场景
+
+- 📝 在线学习笔记
+- 💡 代码片段记录
+- 📚 文档整理
+- ✍️ 临时编辑器
+- 📒 日常文本记录
+
+## 📝 注意事项
+
+- 需要安装 Tampermonkey 或类似脚本管理器
+- 数据保存在浏览器本地
+- 支持所有主流浏览器
+
+## 🌟 更新日志
+
+### VSCode版 v0.2
+- ✨ 添加背景模糊效果
+- 🎨 优化视觉体验
+
+### VSCode版 v0.1 
+- 🚀 初始版本发布
+- 💻 基础编辑器功能
+- 🎨 多语言支持
