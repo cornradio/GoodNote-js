@@ -9,7 +9,6 @@
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=greasyfork.org
 // @grant        GM_setValue
 // @grant        GM_getValue
-// @requirt      file:///
 // @downloadURL https://update.greasyfork.org/scripts/526873/GoodNote%20-%20VSCode%20%E7%BD%91%E9%A1%B5%E7%AC%94%E8%AE%B0%E5%8A%A9%E6%89%8B.user.js
 // @updateURL https://update.greasyfork.org/scripts/526873/GoodNote%20-%20VSCode%20%E7%BD%91%E9%A1%B5%E7%AC%94%E8%AE%B0%E5%8A%A9%E6%89%8B.meta.js
 // ==/UserScript==
@@ -47,6 +46,8 @@
     editorContainer.style.display = 'none';
     editorContainer.style.padding = '15px';
     editorContainer.style.transition = 'bottom 0.2s ease'; // 添加过渡效果
+    editorContainer.style.textAlign = 'left'; // 强制文本左对齐
+    editorContainer.style.margin = '0'; // 清除可能的外边距
 
     // 创建语言选择下拉菜单
     const languageSelect = document.createElement('select');
@@ -103,43 +104,82 @@
 
     // 创建VSCode编辑器实例
     let editor;
-    function initializeEditor() {
-        require(['vs/editor/editor.main'], function() {
-            editor = monaco.editor.create(editorContainer, {
-                value: '',
-                language: languageSelect.value,
-                theme: 'vs-dark',
-                automaticLayout: true
-            });
-
-            // 监听语言选择变化
-            languageSelect.addEventListener('change', () => {
-                monaco.editor.setModelLanguage(editor.getModel(), languageSelect.value);
-                // 保存当前选择的语言
-                GM_setValue('vscode_language', languageSelect.value);
-            });
-
-            // 加载保存的笔记和语言设置
-            const savedNote = GM_getValue('vscode_note', '');
-            const savedLanguage = GM_getValue('vscode_language', 'javascript');
-            languageSelect.value = savedLanguage;
-            editor.setValue(savedNote);
-            monaco.editor.setModelLanguage(editor.getModel(), savedLanguage);
-
-            // 屏蔽其他快捷键
-            editorContainer.addEventListener('keydown', (e) => {
-                e.stopPropagation();
-            });
-
-            // 自动保存功能
-            editor.onDidChangeModelContent(() => {
-                const content = editor.getValue();
-                GM_setValue('vscode_note', content);
-            });
+    
+    // 添加检查Monaco资源可用性的函数
+    function checkMonacoAvailability(url) {
+        return new Promise((resolve, reject) => {
+            fetch(url)
+                .then(response => {
+                    if (response.ok) {
+                        resolve(true);
+                    } else {
+                        reject(new Error('无法加载Monaco编辑器资源'));
+                    }
+                })
+                .catch(error => {
+                    reject(error);
+                });
         });
-        
     }
 
+    // 显示错误信息的函数
+    function showErrorMessage(message) {
+        editorContainer.innerHTML = `
+            <div style="color: #fff; text-align: center; padding: 20px; font-family: Arial, sans-serif;">
+                <h3 style="color: #ff4444;">加载错误</h3>
+                <p> ${message}</p>
+                <p style="color:rgb(221, 255, 68);">一般换一个网站就可以了。(比如下面几个)</p>
+                <p>有些严格网站会禁止访问 Monaco 编辑器的资源（来自 cdnjs.cloudflare.com） <br> 比如 github.com 。<br>
+                可以检查一下更新内容，说不准解决了呢 <a href="https://greasyfork.org/zh-CN/scripts/526873" target="_blank">greasyfork.org</a><br>
+                或者来我的博客看看: <a href="https://b.cornradio.org/" target="_blank">b.cornradio.org</a><br>
+                看会儿视频放松一下： <a href="https://tva.cornradio.org/" target="_blank">tva.cornradio.org</a></p>
+            </div>
+        `;
+    }
+
+    function initializeEditor() {
+        const monacoUrl = 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs/editor/editor.main.js';
+        
+        checkMonacoAvailability(monacoUrl)
+            .then(() => {
+                require(['vs/editor/editor.main'], function() {
+                    editor = monaco.editor.create(editorContainer, {
+                        value: '',
+                        language: languageSelect.value,
+                        theme: 'vs-dark',
+                        automaticLayout: true
+                    });
+
+                    // 监听语言选择变化
+                    languageSelect.addEventListener('change', () => {
+                        monaco.editor.setModelLanguage(editor.getModel(), languageSelect.value);
+                        // 保存当前选择的语言
+                        GM_setValue('vscode_language', languageSelect.value);
+                    });
+
+                    // 加载保存的笔记和语言设置
+                    const savedNote = GM_getValue('vscode_note', '');
+                    const savedLanguage = GM_getValue('vscode_language', 'javascript');
+                    languageSelect.value = savedLanguage;
+                    editor.setValue(savedNote);
+                    monaco.editor.setModelLanguage(editor.getModel(), savedLanguage);
+
+                    // 屏蔽其他快捷键
+                    editorContainer.addEventListener('keydown', (e) => {
+                        e.stopPropagation();
+                    });
+
+                    // 自动保存功能
+                    editor.onDidChangeModelContent(() => {
+                        const content = editor.getValue();
+                        GM_setValue('vscode_note', content);
+                    });
+                });
+            })
+            .catch(error => {
+                showErrorMessage(error.message);
+            });
+    }
 
     // 切换编辑器显示
     function toggleEditor() {
