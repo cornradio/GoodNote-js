@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src *; img-src * 'self' data: https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' *; style-src 'self' 'unsafe-inline' *">
+    <meta http-equiv="Access-Control-Allow-Origin" content="*">
+    <title>GoodNote - VSCode 网页笔记助手</title>
+    <link rel="icon" href="https://code.visualstudio.com/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: black;
+            color: rgb(192, 192, 192);
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            padding-top: 15vh;
+            justify-content: flex-start;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(45deg, rgb(17, 215, 230), rgb(3, 61, 34));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        h2 {
+            color: rgb(233, 233, 233);
+            font-size: 1.8rem;
+            margin-bottom: 3rem;
+            opacity: 0.9;
+        }
+
+        .links {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        a {
+            color: rgb(17, 215, 230);
+            background-color: rgba(3, 61, 34, 0.8);
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 1.1rem;
+        }
+
+        a:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(3, 61, 34, 0.4);
+        }
+
+        a i {
+            font-size: 1.3rem;
+        }
+
+        .background-arrow {
+            position: fixed;
+            right: 40px;
+            bottom: 40px;
+            width: 80px;
+            opacity: 0.8;
+            transition: all 0.3s ease;
+        }
+
+        .background-arrow:hover {
+            transform: scale(1.1);
+            opacity: 1;
+        }
+
+        .github-link {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            font-size: 2rem;
+            color: rgb(192, 192, 192);
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .github-link:hover {
+            color: rgb(17, 215, 230);
+            transform: scale(1.1);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding-top: 10vh;
+            }
+            
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="https://github.com/cornradio/GoodNote-js/tree/master/goodnote-vscode" class="github-link" style="background-color: rgba(45, 71, 59, 0); padding: 1rem 2rem; border-radius: 8px; text-decoration: none; transition: all 0.3s ease; backdrop-filter: blur(5px); display: flex; align-items: center; gap: 0.8rem; font-size: 1.1rem;" target="_blank">
+        <i class="fab fa-github"></i>
+    </a>
+    <div class="container">
+        <h1>GoodNote - VSCode 网页笔记助手</h1>
+        <h2>测试页</h2>
+        <div class="links">
+            <a href="https://chromewebstore.google.com/detail/%E7%AF%A1%E6%94%B9%E7%8C%B4/dhdgffkkebhmkfjojejmpbldmpobfkfo">
+                <i class="fab fa-chrome"></i>
+                下载油猴 - Chrome Web Store
+            </a>
+            <a href="https://greasyfork.org/zh-CN/scripts/526873">
+                <i class="fas fa-puzzle-piece"></i>
+                获取油猴插件 GoodNote - VSCode 网页笔记助手
+            </a>
+        </div>
+    </div>
+    <img src="https://img.picgo.net/2025/02/15/rb2ddb1fc833699c96.png" alt="箭头" class="background-arrow">
+</body>
+</html>
