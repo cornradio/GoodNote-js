@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         GoodNote - 网页笔记助手
 // @namespace    http://tampermonkey.net/
-// @version      0.5b4
+// @version      0.5b8
 // @description  在任何网页添加笔记功能
 // @author       kasusa
 // @license MIT
@@ -9,6 +9,7 @@
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=greasyfork.org
 // @grant        GM_setValue
 // @grant        GM_getValue
+// @grant        GM_registerMenuCommand
 // @downloadURL https://update.greasyfork.org/scripts/526070/GoodNote%20-%20%E7%BD%91%E9%A1%B5%E7%AC%94%E8%AE%B0%E5%8A%A9%E6%89%8B.user.js
 // @updateURL https://update.greasyfork.org/scripts/526070/GoodNote%20-%20%E7%BD%91%E9%A1%B5%E7%AC%94%E8%AE%B0%E5%8A%A9%E6%89%8B.meta.js
 // ==/UserScript==
@@ -149,6 +150,26 @@
         .note-textarea a:hover {
             opacity: 0.8;
         }
+
+        .pin-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+            z-index: 10000;
+        }
+        .pin-button:hover {
+            opacity: 1;
+        }
+        .pin-button.pinned {
+            color: #409eff;
+            opacity: 1;
+        }
     `;
     document.head.appendChild(style);
 
@@ -270,7 +291,7 @@
                 // 只保留标题的第一个部分
                 const [mainTitle] = title.split(' - ');
                 // 在链接的下一行插入标题
-                const titleHTML = `<div> 「${mainTitle}」 </div>`;
+                const titleHTML = `<div>   「${mainTitle}」 </div>`;
                 document.execCommand('insertHTML', false, titleHTML);
             }
         }
@@ -383,7 +404,9 @@
     noteContainer.style.position = 'fixed';
     let isVisible = false;
 
-    // 添加切换笔记显示的函数
+    // 修改 toggleNote 函数，添加 pin 状态
+    let isPinned = false;
+
     function toggleNote() {
         isVisible = !isVisible;
 
@@ -399,38 +422,31 @@
             const windowWidth = window.innerWidth;
             const windowHeight = window.innerHeight;
             const padding = 10;
-            const textareaWidth = 400; // textarea的宽度
+            const textareaWidth = 400;
 
-            let left = iconRect.right + padding; // 改为向右偏移
+            let left = iconRect.right + padding;
             let top = Math.max(padding, iconRect.top);
 
             // 动态计算 max-height
             const maxHeight = windowHeight - top - padding - 30;
             textarea.style.maxHeight = `${maxHeight}px`;
 
-            // 检查水平方向是否超出
             if (left + textareaWidth > windowWidth) {
-                // 如果右侧空间不足，则显示在左侧
                 left = iconRect.left - textareaWidth - padding;
             }
 
-            // 确保left不会小于padding
             left = Math.max(padding, left);
 
-            // 确保容器完全在可视区域内
             if (top + maxHeight > windowHeight) {
                 top = windowHeight - maxHeight - padding;
             }
 
-            // 确保top不会小于padding
             top = Math.max(padding, top);
 
-            // 先设置位置和display
             noteContainer.style.top = `${top}px`;
             noteContainer.style.left = `${left}px`;
             noteContainer.style.display = 'block';
 
-            // 使用 requestAnimationFrame 确保 display: block 生效后再添加动画
             requestAnimationFrame(() => {
                 noteContainer.classList.add('active');
                 setTimeout(() => {
@@ -438,12 +454,10 @@
                 }, 50);
             });
         } else {
-            // 先移除动画类
             noteContainer.classList.remove('active');
-            // 等待动画完成后再完全隐藏元素
             setTimeout(() => {
                 noteContainer.style.display = 'none';
-            }, 300); // 300ms 是过渡动画的持续时间
+            }, 300);
         }
     }
 
@@ -458,18 +472,111 @@
         }
     });
 
-    noteIcon.addEventListener('click', (e) => {
-        if (!isDragging) {
-            toggleNote();
+    // 创建 pin 按钮样式
+    const pinButtonStyle = `
+        .pin-button {
+            position: absolute;
+            top: 10px;
+            right:10px;
+            padding: 5px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            opacity: 0.9;
+            transition: opacity 0.2s;
+            z-index: 10000;
         }
+        .pin-button:hover {
+            opacity: 1;
+        }
+        .pin-button.pinned {
+            color: #409eff;
+            opacity: 1;
+        }
+    `;
+
+    // 将样式添加到现有的样式表中
+    style.textContent += pinButtonStyle;
+
+    // 创建 pin 按钮
+    const pinButton = document.createElement('button');
+    pinButton.className = 'pin-button';
+    pinButton.innerHTML = '📌';
+    pinButton.title = '固定笔记';
+    noteContainer.appendChild(pinButton);
+
+    // 添加 pin 按钮点击事件
+    pinButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        isPinned = !isPinned;
+        pinButton.classList.toggle('pinned');
+        pinButton.innerHTML = isPinned ? '📍' : '📌';
+        pinButton.title = isPinned ? '取消固定' : '固定笔记';
     });
 
-    // 修改点击其他地方关闭笔记的逻辑
-    document.addEventListener('click', (e) => {
-        if (!noteContainer.contains(e.target) && !noteIcon.contains(e.target) && isVisible) {
-            toggleNote(); // 使用 toggleNote 函数来确保正确的隐藏行为
+    // 更新触摸拖动函数
+    function setupTouchDrag(element) {
+        let startX, startY, initialX, initialY;
+        let isTouchDragging = false;
+        let touchStartTime = 0;
+        let touchMoveDistance = 0;
+
+        element.addEventListener('touchstart', function(e) {
+            const touch = e.touches[0];
+            startX = touch.clientX;
+            startY = touch.clientY;
+            initialX = parseInt(element.style.left, 10) || 0;
+            initialY = parseInt(element.style.top, 10) || 0;
+            touchStartTime = Date.now();
+            touchMoveDistance = 0;
+            isTouchDragging = false;
+            e.preventDefault();
+        });
+
+        element.addEventListener('touchmove', function(e) {
+            const touch = e.touches[0];
+            const dx = touch.clientX - startX;
+            const dy = touch.clientY - startY;
+            touchMoveDistance = Math.sqrt(dx * dx + dy * dy);
+            
+            // 如果移动距离超过5px则认为是拖动
+            if(touchMoveDistance > 5) {
+                isTouchDragging = true;
+                element.style.left = `${initialX + dx}px`;
+                element.style.top = `${initialY + dy}px`;
+            }
+            e.preventDefault();
+        });
+
+        element.addEventListener('touchend', function(e) {
+            const touchDuration = Date.now() - touchStartTime;
+            
+            // 如果触摸时间小于200ms且移动距离小于5px,则认为是点击
+            if(touchDuration < 200 && touchMoveDistance < 5 && !isTouchDragging) {
+                toggleNote();
+            }
+
+            // 保存图标位置
+            if(isTouchDragging) {
+                GM_setValue('goodnote_global_position', {
+                    top: element.style.top,
+                    left: element.style.left
+                });
+            }
+            
+            e.preventDefault();
+        });
+    }
+
+    // 初始化拖动功能
+    function initializeDragAndDrop() {
+        const draggableElement = document.querySelector('.note-icon');
+        if (draggableElement) {
+            setupTouchDrag(draggableElement);
+        } else {
+            console.error('Draggable element not found');
         }
-    });
+    }
 
     // 自动保存功能
     let saveTimeout;
@@ -478,5 +585,86 @@
     window.addEventListener('load', () => {
         GM_setValue('goodNoteIconInserted', false);
     });
+    initializeDragAndDrop();
+
+    // 在创建笔记图标后，添加设置相关代码
+    const HOVER_MODE_KEY = 'goodnote_hover_mode';
+    let hoverMode = GM_getValue(HOVER_MODE_KEY, false); // 默认为点击模式
+
+    // 添加设置菜单
+    GM_registerMenuCommand('切换打开模式 (点击/悬停)', toggleHoverMode);
+
+    function toggleHoverMode() {
+        hoverMode = !hoverMode;
+        GM_setValue(HOVER_MODE_KEY, hoverMode);
+        // 显示当前模式
+        alert(`已切换为${hoverMode ? '悬停' : '点击'}打开模式`);
+        updateNoteIconListeners();
+    }
+
+    // 更新图标的事件监听器
+    function updateNoteIconListeners() {
+        // 移除所有现有的事件监听器
+        noteIcon.removeEventListener('mouseenter', handleHover);
+        noteIcon.removeEventListener('mouseleave', handleMouseLeave);
+        noteIcon.removeEventListener('click', handleClick);
+        
+        // 移除旧的点击事件监听器
+        noteIcon.removeEventListener('click', (e) => {
+            if (!isDragging) {
+                toggleNote();
+            }
+        });
+
+        if (hoverMode) {
+            // 悬停模式只添加 mouseenter 事件
+            noteIcon.addEventListener('mouseenter', handleHover);
+        } else {
+            // 点击模式
+            noteIcon.addEventListener('click', handleClick);
+        }
+    }
+
+    // 修改点击其他地方关闭笔记的逻辑
+    document.removeEventListener('click', handleDocumentClick); // 先移除可能存在的事件监听器
+
+    function handleDocumentClick(e) {
+        // 确保点击不是发生在笔记图标、笔记容器或者pin按钮上
+        const isClickOutside = !noteContainer.contains(e.target) && 
+                              !noteIcon.contains(e.target) && 
+                              !pinButton.contains(e.target);
+        
+        if (isVisible && !isPinned && isClickOutside) {
+            toggleNote();
+        }
+    }
+
+    // 重新添加文档点击事件监听器
+    document.addEventListener('click', handleDocumentClick);
+
+    // 修改处理点击事件的函数
+    function handleClick(e) {
+        if (!isDragging) {
+            e.stopPropagation(); // 阻止事件冒泡
+            toggleNote();
+        }
+    }
+
+    // 修改处理悬停事件的函数
+    function handleHover(e) {
+        if (!isVisible && !isDragging) {
+            toggleNote();
+        }
+    }
+
+    // 修改处理鼠标离开事件的函数
+    function handleMouseLeave(e) {
+        // 移除自动关闭的逻辑
+        // 现在只需要点击空白处来关闭
+    }
+
+    // 初始化事件监听器
+    updateNoteIconListeners();
+
 })();
 
